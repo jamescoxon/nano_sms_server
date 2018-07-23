@@ -1,10 +1,10 @@
-import dataset, time, json, settings, random
+import dataset, time, json, random
 from websocket import create_connection
 
 import binascii
 from bitstring import BitArray
 from pyblake2 import blake2b
-from nano25519 import ed25519_oop as ed25519
+from .nano25519 import ed25519_oop as ed25519
 import settings
 
 def private_public(private):
