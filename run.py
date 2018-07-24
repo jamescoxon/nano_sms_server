@@ -30,12 +30,15 @@ def sms_ahoy_reply():
     if user_details is None:  # User is not found in the database
         print(f'{from_number} is not in database.')
         authcode = (random.SystemRandom().randint(1000, 9999))
+        rec_word = ''.join(random.sample(open("english.txt").read().split(),5))
         user_details = User.create(
             phonenumber=from_number,
+            country=from_country,
             time=datetime.now(),
             count=1,
             auth=authcode,
-            claim_last=0)
+            claim_last=0
+            rec_word = rec_word)
     else:
         print(
             f'{user_details.id} - {user_details.phonenumber} sent a message.')
@@ -57,7 +60,7 @@ def sms_ahoy_reply():
 
         # Add a message
         resp.message(f'Welcome to NanoSMS, your address:\n'
-                     f'{account}, Code: {new_authcode}')
+                     f'{account}, Code: {new_authcode}, Recovery Phrase: {rec_word}')
 
     elif 'details' in text_body:
         print('Found help')
@@ -243,6 +246,28 @@ def sms_ahoy_reply():
         else:
             resp = MessagingResponse()
             resp.message("Error: Incorrect Auth Code")
+            return str(resp)
+        
+    elif 'recover' in text_body:
+        print('Start Recovery')
+        
+        components = text_body.split(" ")
+        rec_word_rx = components[1]
+
+        # Check recovery word in database
+        try:
+            rec_details = user_table.get(user_table.rec_word == rec_word_rx) #check entire table for recovery word, return record
+            rec_account = nano.get_address(rec_details.id)
+            
+            resp = MessagingResponse()
+            # Return details to user
+            resp.message(
+                    f'Phone number: {rec_details.number} \nAddress: {rec_account} \nAuth code: {rec_details.authcode}'
+                )
+        
+        except:
+            resp = MessagingResponse()
+            resp.message("Error recovery phrase not recognised")
             return str(resp)
 
     else:
